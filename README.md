@@ -1,70 +1,230 @@
-Sample .NET Core REST API CQRS implementation with raw SQL and DDD using Clean Architecture.
-==============================================================
+# 🏗️ .NET Core REST API — CQRS + DDD + Clean Architecture
 
-## CI
+> A .NET Core REST API implementing **CQRS** (Command Query Responsibility Segregation) with **Domain-Driven Design** and **Clean Architecture** principles.
 
-![](https://github.com/kgrzybek/sample-dotnet-core-cqrs-api/workflows/Build%20Pipeline/badge.svg)
+![Build](https://github.com/kgrzybek/sample-dotnet-core-cqrs-api/workflows/Build%20Pipeline/badge.svg)
 
-## Give a Star! :star:
+---
 
-If you like this project, learn something or you are using it in your applications, please give it a star. Thanks!
+## 🇺🇸 English
 
-## Description
-Sample .NET Core REST API application implemented with basic [CQRS](https://docs.microsoft.com/en-us/azure/architecture/guide/architecture-styles/cqrs) approach and Domain Driven Design.
+### 📖 About
 
-## Architecture [Clean Architecture](http://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html)
+This project is a study and reference implementation of a **.NET Core REST API** applying real-world architectural patterns:
 
-![projects_dependencies](docs/clean_architecture.jpg)
+- **CQRS** — separates read and write models for optimized data access
+- **Domain-Driven Design (DDD)** — rich domain model with encapsulated business rules
+- **Clean Architecture** — clear separation of concerns across layers
+- **Outbox Pattern** — reliable domain event publishing for integration scenarios
 
-## CQRS
+The API manages **Customers** and **Orders**, demonstrating how these patterns work together in a cohesive application.
 
-Read Model - executing raw SQL scripts on database views objects (using [Dapper](https://github.com/StackExchange/Dapper)).
+### 🏛️ Architecture
 
-Write Model - Domain Driven Design approach (using Entity Framework Core).
+The solution follows [Clean Architecture](http://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html) with four well-defined layers:
 
-Commands/Queries/Domain Events handling using [MediatR](https://github.com/jbogard/MediatR) library.
+![Clean Architecture](docs/clean_architecture.jpg)
 
-## Domain
+| Layer | Responsibility |
+|---|---|
+| **API** | HTTP controllers, middleware, Swagger documentation |
+| **Application** | Commands, queries, handlers, validation, DTOs |
+| **Domain** | Entities, value objects, domain events, business rules |
+| **Infrastructure** | EF Core persistence, Dapper queries, caching, email |
 
-![projects_dependencies](docs/domain_model_diagram.png)
+### 📂 Project Structure
 
-## Validation
-Data validation using [FluentValidation](https://github.com/JeremySkinner/FluentValidation)
+```
+src/
+├── SampleProject.API/              # REST API entry point
+│   ├── Customers/                   # Customer endpoints
+│   ├── Orders/                      # Order endpoints
+│   ├── Configuration/               # Middleware, Swagger, DI
+│   └── SeedWork/                    # ProblemDetails mappings
+├── SampleProject.Application/       # Use cases (CQRS handlers)
+│   ├── Customers/                   # Register, query, integration events
+│   ├── Orders/                      # Place, change, remove, query orders
+│   └── Configuration/               # Commands, queries, validation abstractions
+├── SampleProject.Domain/            # Core business logic
+│   ├── Customers/                   # Customer aggregate
+│   ├── Products/                    # Product entity
+│   ├── Payments/                    # Payment value objects
+│   ├── ForeignExchange/             # Exchange rate logic
+│   └── SeedWork/                    # Base classes (Entity, ValueObject, etc.)
+├── SampleProject.Infrastructure/    # External concerns
+│   ├── Database/                    # EF Core DbContext, migrations
+│   ├── Caching/                     # In-memory cache (Cache-Aside)
+│   ├── Processing/                  # Outbox pattern (Quartz.NET)
+│   └── Domain/                      # Repository implementations
+└── Tests/
+    └── SampleProject.IntegrationTests/
+```
 
-Problem Details for HTTP APIs standard implementation using [ProblemDetails](https://github.com/khellang/Middleware/tree/master/src/ProblemDetails)
+### ⚙️ Tech Stack
 
-## Caching
-Using Cache-Aside pattern and in-memory cache.
+| Technology | Purpose |
+|---|---|
+| **.NET Core 3.1** | Runtime framework |
+| **MediatR** | Command/Query/Event dispatching |
+| **Entity Framework Core** | Write model (ORM) |
+| **Dapper** | Read model (raw SQL on database views) |
+| **FluentValidation** | Input validation pipeline |
+| **Quartz.NET** | Outbox pattern scheduling |
+| **Swagger / OpenAPI** | Interactive API documentation |
+| **Serilog** | Structured logging |
+| **ProblemDetails** | RFC 7807 error responses |
 
-## Integration
-Outbox Pattern implementation using [Quartz.NET](https://github.com/quartznet/quartznet)
+### 🔀 CQRS Flow
 
-## Related blog articles
+```
+                    ┌──────────────┐
+   HTTP Request ──► │  Controller  │
+                    └──────┬───────┘
+                           │
+              ┌────────────┴────────────┐
+              ▼                         ▼
+      ┌──────────────┐         ┌──────────────┐
+      │   Command    │         │    Query     │
+      │  (MediatR)   │         │  (MediatR)   │
+      └──────┬───────┘         └──────┬───────┘
+             │                        │
+             ▼                        ▼
+      ┌──────────────┐         ┌──────────────┐
+      │  EF Core     │         │   Dapper     │
+      │ (Write Model)│         │ (Read Model) │
+      └──────────────┘         └──────────────┘
+```
 
-[Simple CQRS implementation with raw SQL and DDD](http://www.kamilgrzybek.com/design/simple-cqrs-implementation-with-raw-sql-and-ddd/)
+### 🔑 Domain Model
 
-[Domain Model Encapsulation and PI with Entity Framework 2.2](http://www.kamilgrzybek.com/design/domain-model-encapsulation-and-pi-with-entity-framework-2-2/)
+![Domain Model](docs/domain_model_diagram.png)
 
-[REST API Data Validation](http://www.kamilgrzybek.com/design/rest-api-data-validation/)
+### 🧩 Key Patterns Demonstrated
 
-[Domain Model Validation](http://www.kamilgrzybek.com/design/domain-model-validation/)
+- **Aggregate Root** — `Customer` and `Order` as consistency boundaries
+- **Value Objects** — `MoneyValue`, `OrderProduct`, immutable domain primitives
+- **Domain Events** — `OrderPlacedEvent`, `CustomerRegisteredEvent` for cross-aggregate communication
+- **Business Rule Validation** — encapsulated rules checked before state changes
+- **Cache-Aside Pattern** — in-memory caching for read performance
+- **Outbox Pattern** — guaranteed delivery of integration events via Quartz.NET
 
-[How to publish and handle Domain Events](http://www.kamilgrzybek.com/design/how-to-publish-and-handle-domain-events/)
+### 🚀 How to Run
 
-[Handling Domain Events: Missing Part](http://www.kamilgrzybek.com/design/handling-domain-events-missing-part/)
+1. Create an empty SQL Server database
+2. Execute `src/InitializeDatabase.sql`
+3. Configure the connection string in `appsettings.json` (or via User Secrets):
+   ```json
+   {
+     "OrdersConnectionString": "Server=...;Database=...;Trusted_Connection=True;"
+   }
+   ```
+4. Run the application:
+   ```bash
+   cd src/SampleProject.API
+   dotnet run
+   ```
+5. Access Swagger UI at `https://localhost:5001/swagger`
 
-[Cache-Aside Pattern in .NET Core](http://www.kamilgrzybek.com/design/cache-aside-pattern-in-net-core/)
+### 🧪 Integration Tests
 
-[The Outbox Pattern](http://www.kamilgrzybek.com/design/the-outbox-pattern/)
+```bash
+export ASPNETCORE_SampleProject_IntegrationTests_ConnectionString="<your-connection-string>"
+cd src/Tests/SampleProject.IntegrationTests
+dotnet test
+```
 
-## How to run application
-1. Create empty database.
-2. Execute InitializeDatabase.sql script.
-2. Set connection string (in appsettings.json or by user secrets mechanism).
-3. Run!
+### 📡 API Endpoints
 
-## How to run Integration Tests
-1. Create empty database.
-2. Execute InitializeDatabase.sql script.
-3. Set connection string using environment variable named `ASPNETCORE_SampleProject_IntegrationTests_ConnectionString`
-- Run tests from project [src/Tests/SampleProject.IntegrationTests](src/Tests/SampleProject.IntegrationTests)
+| Method | Route | Description |
+|---|---|---|
+| `POST` | `/api/customers` | Register a new customer |
+| `GET` | `/api/customers/{id}/orders` | List customer orders |
+| `GET` | `/api/customers/{id}/orders/{orderId}` | Get order details |
+| `POST` | `/api/customers/{id}/orders` | Place a new order |
+| `PUT` | `/api/customers/{id}/orders/{orderId}` | Change an existing order |
+| `DELETE` | `/api/customers/{id}/orders/{orderId}` | Remove an order |
+
+---
+
+## 🇧🇷 Português
+
+### 📖 Sobre
+
+Este projeto é uma implementação de estudo e referência de uma **API REST em .NET Core** aplicando padrões arquiteturais do mundo real:
+
+- **CQRS** — separa modelos de leitura e escrita para acesso otimizado aos dados
+- **Domain-Driven Design (DDD)** — modelo de domínio rico com regras de negócio encapsuladas
+- **Clean Architecture** — separação clara de responsabilidades entre camadas
+- **Outbox Pattern** — publicação confiável de eventos de domínio para cenários de integração
+
+A API gerencia **Clientes** e **Pedidos**, demonstrando como esses padrões trabalham juntos em uma aplicação coesa.
+
+### 🏛️ Arquitetura
+
+A solução segue a [Clean Architecture](http://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html) com quatro camadas bem definidas:
+
+| Camada | Responsabilidade |
+|---|---|
+| **API** | Controllers HTTP, middleware, documentação Swagger |
+| **Application** | Commands, queries, handlers, validação, DTOs |
+| **Domain** | Entidades, value objects, eventos de domínio, regras de negócio |
+| **Infrastructure** | Persistência com EF Core, consultas com Dapper, cache, e-mail |
+
+### ⚙️ Stack Tecnológica
+
+| Tecnologia | Uso |
+|---|---|
+| **.NET Core 3.1** | Framework de execução |
+| **MediatR** | Despacho de commands/queries/eventos |
+| **Entity Framework Core** | Modelo de escrita (ORM) |
+| **Dapper** | Modelo de leitura (SQL puro em views) |
+| **FluentValidation** | Pipeline de validação de entrada |
+| **Quartz.NET** | Agendamento do padrão Outbox |
+| **Swagger / OpenAPI** | Documentação interativa da API |
+| **Serilog** | Logging estruturado |
+
+### 🧩 Padrões Demonstrados
+
+- **Aggregate Root** — `Customer` e `Order` como limites de consistência
+- **Value Objects** — `MoneyValue`, `OrderProduct`, primitivos imutáveis do domínio
+- **Eventos de Domínio** — `OrderPlacedEvent`, `CustomerRegisteredEvent` para comunicação entre agregados
+- **Validação de Regras de Negócio** — regras encapsuladas verificadas antes de mudanças de estado
+- **Cache-Aside** — cache em memória para performance de leitura
+- **Outbox Pattern** — entrega garantida de eventos de integração via Quartz.NET
+
+### 🚀 Como Executar
+
+1. Crie um banco de dados SQL Server vazio
+2. Execute o script `src/InitializeDatabase.sql`
+3. Configure a connection string em `appsettings.json` (ou via User Secrets):
+   ```json
+   {
+     "OrdersConnectionString": "Server=...;Database=...;Trusted_Connection=True;"
+   }
+   ```
+4. Execute a aplicação:
+   ```bash
+   cd src/SampleProject.API
+   dotnet run
+   ```
+5. Acesse o Swagger UI em `https://localhost:5001/swagger`
+
+### 🧪 Testes de Integração
+
+```bash
+export ASPNETCORE_SampleProject_IntegrationTests_ConnectionString="<sua-connection-string>"
+cd src/Tests/SampleProject.IntegrationTests
+dotnet test
+```
+
+---
+
+## 📝 Credits / Créditos
+
+> Originally created by [Kamil Grzybek](https://github.com/kgrzybek) — [Original Repository](https://github.com/kgrzybek/sample-dotnet-core-cqrs-api)
+>
+> Forked and customized for portfolio and learning purposes.
+
+## 📄 License
+
+This project is licensed under the [MIT License](LICENSE).
