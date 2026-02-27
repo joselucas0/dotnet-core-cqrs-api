@@ -14,9 +14,16 @@ namespace SampleProject.API.Configuration
             {
                 options.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
                 {
-                    Title = "Sample CQRS API",
+                    Title = "Sample CQRS API — Clean Architecture",
                     Version = "v1",
-                    Description = "Sample .NET Core REST API CQRS implementation with raw SQL and DDD using Clean Architecture.",
+                    Description = "A .NET Core REST API demonstrating CQRS with raw SQL (Dapper) for reads, " +
+                                  "Entity Framework Core for writes, Domain-Driven Design, and Clean Architecture. " +
+                                  "Features: FluentValidation, MediatR, Outbox Pattern, Cache-Aside, and structured logging with Serilog.",
+                    License = new Microsoft.OpenApi.Models.OpenApiLicense
+                    {
+                        Name = "MIT",
+                        Url = new Uri("https://opensource.org/licenses/MIT")
+                    }
                 });
 
                 var baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
@@ -34,7 +41,7 @@ namespace SampleProject.API.Configuration
 
             app.UseSwaggerUI(c =>
             {
-                c.SwaggerEndpoint("/swagger/v1/swagger.json", "Sample CQRS API V1");
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "Sample CQRS API — Clean Architecture V1");
             });
 
             return app;
